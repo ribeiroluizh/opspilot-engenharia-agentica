@@ -31,6 +31,30 @@ def test_ler_logs_limita_linhas():
     assert len(saida.splitlines()) == 3
 
 
+def test_listar_deploys_filtra_e_ordena_logs(monkeypatch, tmp_path):
+    from datetime import UTC, datetime, timedelta
+
+    agora = datetime.now(UTC)
+    monkeypatch.setattr(tools, "DIR_LOGS", tmp_path)
+    (tmp_path / "servico-a.log").write_text(
+        f"{(agora - timedelta(hours=2)).isoformat()} INFO deploy mais antigo\n"
+        f"{(agora - timedelta(hours=8)).isoformat()} INFO deploy antigo\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "servico-b.log").write_text(
+        f"{(agora - timedelta(hours=1)).isoformat()} INFO deploy mais recente\n",
+        encoding="utf-8",
+    )
+
+    saida = tools.listar_deploys.invoke({"horas": 6})
+
+    assert saida.splitlines() == [
+        f"{(agora - timedelta(hours=2)).isoformat()} INFO deploy mais antigo",
+        f"{(agora - timedelta(hours=1)).isoformat()} INFO deploy mais recente",
+    ]
+    assert tools.listar_deploys in tools.TODAS_FERRAMENTAS
+
+
 def test_buscar_runbook_encontra_pool():
     saida = tools.buscar_runbook.invoke({"consulta": "pool de conexões esgotado"})
     assert "banco-conexoes-esgotadas.md" in saida
