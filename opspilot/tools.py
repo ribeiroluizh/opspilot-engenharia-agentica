@@ -30,7 +30,7 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timezone
 from typing import Literal
 
 from langchain_core.tools import tool
@@ -63,10 +63,7 @@ def _normalizar(texto: str) -> list[str]:
 # --------------------------------------------------------------------------- #
 
 
-# ┌─ LACUNA [A1-L2] Transforme a função em uma ferramenta que o LLM enxerga
-# │  Dica: O LangChain tem um decorator que lê o nome, a docstring e os tipos da função para gerar o schema da ferramenta. Ele já foi importado no topo do arquivo.
-# │  Copilot Chat: "Transforme a função consultar_metricas em uma ferramenta LangChain usando o decorator importado de langchain_core.tools"
-# └─ Troque cada ___ abaixo. Gabarito: `make gabarito-aula AULA=1`
+# [A1-L2] ✔ Transforme a função em uma ferramenta que o LLM enxerga
 @tool
 def consultar_metricas(servico: str) -> str:
     """Consulta as métricas atuais de UM serviço e compara com o baseline.
@@ -81,12 +78,12 @@ def consultar_metricas(servico: str) -> str:
     metricas = _carregar_metricas()
     nome = servico.strip().lower()
 
-    # ┌─ LACUNA [A1-L3] Erro vira observação (autocorreção do agente)
-    # │  Dica: Não lance exceção! Devolva um TEXTO dizendo que o serviço não existe e liste os válidos — o agente vai ler e tentar de novo com o nome certo.
-    # │  Copilot Chat: "Se o serviço não estiver em metricas, retorne uma string de erro amigável listando os serviços válidos separados por vírgula"
-    # └─ Troque cada ___ abaixo. Gabarito: `make gabarito-aula AULA=1`
+    # [A1-L3] ✔ Erro vira observação (autocorreção do agente)
     if nome not in metricas:
-        return f"ERRO: serviço '{servico}' não encontrado. Serviços válidos: {', '.join(sorted(metricas))}."
+        return (
+            f"ERRO: serviço '{servico}' não encontrado. "
+            f"Serviços válidos: {', '.join(sorted(metricas))}."
+        )
 
     return json.dumps({"servico": nome, **metricas[nome]}, ensure_ascii=False, indent=2)
 
@@ -116,41 +113,6 @@ def ler_logs(servico: str, filtro: str = "", max_linhas: int = 20) -> str:
     if not selecionadas:
         return f"Nenhuma linha em '{servico}' contém '{filtro}'."
     return "\n".join(selecionadas)
-
-
-@tool
-def listar_deploys(horas: int) -> str:
-    """Lista deploys recentes encontrados em todos os logs.
-
-    Use para descobrir o que mudou recentemente ou investigar uma possível
-    relação entre um deploy e um incidente.
-
-    Args:
-        horas: Quantidade de horas para buscar a partir do horário atual.
-    """
-    if horas < 1:
-        return "ERRO: informe uma quantidade de horas maior que zero."
-
-    agora = datetime.now(UTC)
-    limite = agora - timedelta(hours=horas)
-    deploys: list[tuple[datetime, str]] = []
-    for arquivo in DIR_LOGS.glob("*.log"):
-        for linha in arquivo.read_text(encoding="utf-8").splitlines():
-            if "deploy" not in linha.lower():
-                continue
-            try:
-                horario = datetime.fromisoformat(linha.split(maxsplit=1)[0])
-                if horario.tzinfo is None:
-                    horario = horario.replace(tzinfo=UTC)
-            except (IndexError, ValueError):
-                continue
-            if limite <= horario <= agora:
-                deploys.append((horario, linha))
-
-    if not deploys:
-        return f"Nenhum deploy encontrado nos últimos {horas} horas."
-    deploys.sort(key=lambda item: (item[0], item[1]))
-    return "\n".join(linha for _, linha in deploys)
 
 
 @tool
@@ -206,7 +168,7 @@ def abrir_ticket(
         resumo: Causa raiz, evidências e ação recomendada, em poucas linhas.
     """
     DIR_TICKETS.mkdir(parents=True, exist_ok=True)
-    agora = datetime.now(UTC)
+    agora = datetime.now(timezone.utc)
     ticket_id = f"OPS-{agora.strftime('%Y%m%d%H%M%S')}"
     ticket = {
         "id": ticket_id,
@@ -217,7 +179,9 @@ def abrir_ticket(
         "resumo": resumo,
         "origem": "opspilot",
     }
-    (DIR_TICKETS / f"{ticket_id}.json").write_text(json.dumps(ticket, ensure_ascii=False, indent=2), encoding="utf-8")
+    (DIR_TICKETS / f"{ticket_id}.json").write_text(
+        json.dumps(ticket, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     return f"Ticket {ticket_id} aberto ({severidade}) para {servico}."
 
 
@@ -226,7 +190,7 @@ def abrir_ticket(
 # --------------------------------------------------------------------------- #
 
 #: Só leitura: seguras para o agente usar livremente (e para sub-agentes).
-FERRAMENTAS_LEITURA = [consultar_metricas, ler_logs, listar_deploys, buscar_runbook]
+FERRAMENTAS_LEITURA = [consultar_metricas, ler_logs, buscar_runbook]
 
 #: Todas, incluindo a de escrita. Na Aula 2/3 ``abrir_ticket`` passa por aprovação humana.
 TODAS_FERRAMENTAS = [*FERRAMENTAS_LEITURA, abrir_ticket]
