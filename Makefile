@@ -41,7 +41,7 @@ aula2-grafo: ## Desenha o grafo da Aula 2 (sem chave)
 	$(PY) -m aulas.aula2.a2_02_desenhar_grafo
 
 aula3: ## Roda o Deep Agent no INC-2041
-	$(PY) -m aulas.aula3.a3_01_comandante
+	$(PY) -m aulas.aula3.a3_01_orquestrador
 
 aula4: ## Roda a FSM com tracing no Langfuse
 	$(PY) -m aulas.aula4.a4_01_tracing
@@ -49,19 +49,30 @@ aula4: ## Roda a FSM com tracing no Langfuse
 avaliar: ## Avaliação completa + gate (LIMITE=0.75)
 	$(PY) -m aulas.aula4.a4_02_avaliar --limite $(or $(LIMITE),0.75)
 
+# De onde vem o gabarito. Primeiro tenta o branch `solucoes` do próprio fork (origin).
+# Forks criados com "Copy the main branch only" não têm esse branch: aí o gabarito
+# vem direto do repositório oficial do curso. O resultado fica numa referência local
+# própria, que não mexe nos branches do aluno.
+GABARITO_URL ?= https://github.com/sergiogaiotto/opspilot-engenharia-agentica.git
+GABARITO_REF = refs/opspilot/solucoes
+BUSCAR_GABARITO = git fetch --quiet origin +refs/heads/solucoes:$(GABARITO_REF) 2>/dev/null \
+	|| { echo "ℹ️  Seu fork não tem o branch solucoes. Buscando o gabarito no repositório do curso..."; \
+	     git fetch --quiet $(GABARITO_URL) +refs/heads/solucoes:$(GABARITO_REF); } \
+	|| { echo "❌ Não consegui baixar o gabarito. Confira a internet do Codespace e tente de novo."; exit 1; }
+
 bonde: ## Ficou para trás? Traz o gabarito das aulas ANTERIORES à AULA=N
 	@test -n "$(AULA)" || (echo "Use: make bonde AULA=3" && exit 1)
-	git fetch origin solucoes --quiet
+	@$(BUSCAR_GABARITO)
 	@for n in 1 2 3 4; do \
 	  if [ $$n -lt $(AULA) ]; then \
 	    case $$n in 1) arqs="$(ARQ_AULA1)";; 2) arqs="$(ARQ_AULA2)";; 3) arqs="$(ARQ_AULA3)";; 4) arqs="$(ARQ_AULA4)";; esac; \
-	    echo "🚋 Trazendo gabarito da Aula $$n"; git checkout origin/solucoes -- $$arqs; \
+	    echo "🚋 Trazendo gabarito da Aula $$n"; git checkout $(GABARITO_REF) -- $$arqs || exit 1; \
 	  fi; \
 	done
 	@echo "✅ Pronto para a Aula $(AULA). Seu trabalho anterior está no histórico do git."
 
 gabarito-aula: ## Mostra o diff entre seu código e o gabarito da AULA=N
 	@test -n "$(AULA)" || (echo "Use: make gabarito-aula AULA=2" && exit 1)
-	git fetch origin solucoes --quiet
+	@$(BUSCAR_GABARITO)
 	@case $(AULA) in 1) arqs="$(ARQ_AULA1)";; 2) arqs="$(ARQ_AULA2)";; 3) arqs="$(ARQ_AULA3)";; 4) arqs="$(ARQ_AULA4)";; esac; \
-	git --no-pager diff HEAD origin/solucoes -- $$arqs
+	git --no-pager diff HEAD $(GABARITO_REF) -- $$arqs

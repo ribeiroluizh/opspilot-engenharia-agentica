@@ -51,13 +51,10 @@ jobs:
       - name: Verifica se há chave
         id: chave
         run: echo "tem=$([ -n "$OPENAI_API_KEY" ] && echo sim || echo nao)" >> "$GITHUB_OUTPUT"
-      # ┌─ LACUNA [A4-L6] O gate: reprovar o PR se a qualidade cair
-      # │  Dica: O script de avaliação sai com código 1 quando a nota fica abaixo de --limite — e qualquer passo que sai com código diferente de 0 reprova o job. Rode o módulo aulas.aula4.a4_02_avaliar com --limite 0.75, só se a chave existir.
-      # │  Copilot Chat: "Crie um step chamado "Avaliação + gate" que roda python -m aulas.aula4.a4_02_avaliar --limite 0.75 apenas quando steps.chave.outputs.tem == 'sim'"
-      # └─ Troque cada ___ abaixo. Gabarito: `make gabarito-aula AULA=4`
+      # [A4-L6] ✔ O gate: reprovar o PR se a qualidade cair
       - name: Avaliação + gate
         if: steps.chave.outputs.tem == 'sim'
-        run: python -m ___ --limite ___
+        run: python -m aulas.aula4.a4_02_avaliar --limite 0.75
       - name: Publica o relatório da avaliação
         if: always() && steps.chave.outputs.tem == 'sim'
         uses: actions/upload-artifact@v4

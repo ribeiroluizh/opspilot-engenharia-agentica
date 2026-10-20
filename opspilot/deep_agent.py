@@ -1,4 +1,4 @@
-"""Aula 3 — O OpsPilot "Comandante de Incidente" com o Deep Agent Harness.
+"""Aula 3 — O OpsPilot como agente orquestrador de incidentes, com o Deep Agent Harness.
 
 O que é um *harness*?
 ---------------------
@@ -21,7 +21,7 @@ apoiado em **4 pilares**:
 E o grafo da Aula 2?
     ``create_deep_agent`` devolve um grafo LangGraph, e aceita outro grafo
     compilado como sub-agente (``CompiledSubAgent``). Por isso a FSM da Aula 2
-    vira um "especialista" que o Comandante consulta para ter um diagnóstico
+    vira um "especialista" que o orquestrador consulta para ter um diagnóstico
     VALIDADO. É assim que se encapsula um fluxo LangGraph num harness.
 
 Mapa de arquivos que o agente enxerga (backend composto)::
@@ -44,7 +44,7 @@ from opspilot.tools import abrir_ticket, buscar_runbook, consultar_metricas, ler
 # Prompts
 # --------------------------------------------------------------------------- #
 
-PROMPT_COMANDANTE = """Você é o OpsPilot Comandante de Incidente da MercadoNimbus.
+PROMPT_ORQUESTRADOR = """Você é o OpsPilot, o agente orquestrador de investigação de incidentes da MercadoNimbus.
 Sua missão é conduzir investigações complexas de ponta a ponta e entregar um
 post-mortem impecável, com cada afirmação apoiada em evidência.
 
@@ -71,19 +71,19 @@ post-mortem impecável, com cada afirmação apoiada em evidência.
 # Sub-agentes
 # --------------------------------------------------------------------------- #
 
-# ┌─ LACUNA [A3-L1] Declare um sub-agente especialista
-# │  Dica: Um SubAgent é um dicionário com name, description (o Comandante lê isso para decidir QUANDO delegar), system_prompt e tools. Dê a ele só as ferramentas de que precisa: ler_logs e consultar_metricas.
-# │  Copilot Chat: "Complete o dicionário SubAgent analista-de-logs com uma description orientada a ação e tools=[ler_logs, consultar_metricas]"
-# └─ Troque cada ___ abaixo. Gabarito: `make gabarito-aula AULA=3`
+# [A3-L1] ✔ Declare um sub-agente especialista
 ANALISTA_DE_LOGS: SubAgent = {
     "name": "analista-de-logs",
-    "description": ___,
+    "description": (
+        "Analisa logs e métricas de UM serviço e devolve linha do tempo, anomalias e "
+        "linhas de log literais como evidência. Use uma delegação por serviço."
+    ),
     "system_prompt": (
         "Você analisa UM serviço por vez. Use ler_logs (filtros ERROR, WARN, pool, deploy) e "
         "consultar_metricas. Devolva: linha do tempo UTC, anomalias vs. baseline e as linhas "
         "de log LITERAIS que sustentam cada conclusão. Máximo 15 linhas."
     ),
-    "tools": [___, ___],
+    "tools": [ler_logs, consultar_metricas],
 }
 
 PESQUISADOR_DE_RUNBOOKS: SubAgent = {
@@ -102,14 +102,11 @@ PESQUISADOR_DE_RUNBOOKS: SubAgent = {
 
 def criar_subagente_triagem() -> CompiledSubAgent:
     """Empacota a FSM da Aula 2 como sub-agente (sem aprovação humana interna)."""
-    # ┌─ LACUNA [A3-L2] Encapsule o grafo LangGraph da Aula 2 no harness
-    # │  Dica: CompiledSubAgent = dicionário com name, description e runnable. O runnable é o grafo compilado; use construir_grafo(aprovacao_humana=False) porque quem pede aprovação agora é o Comandante.
-    # │  Copilot Chat: "Retorne um CompiledSubAgent com name "triagem-fsm", uma description explicando que devolve diagnóstico validado por regras, e runnable=construir_grafo(aprovacao_humana=False)"
-    # └─ Troque cada ___ abaixo. Gabarito: `make gabarito-aula AULA=3`
+    # [A3-L2] ✔ Encapsule o grafo LangGraph da Aula 2 no harness
     return {
         "name": "triagem-fsm",
         "description": "Fluxo determinístico da Aula 2: classifica, investiga e devolve um diagnóstico VALIDADO por regras (com evidências checadas).",
-        "runnable": ___,
+        "runnable": construir_grafo(aprovacao_humana=False),
     }
 
 
@@ -125,13 +122,10 @@ def criar_backend() -> CompositeBackend:
     consegue sair dessa pasta (``../`` é bloqueado). Guarda-corpo essencial.
     """
     DIR_WORKSPACE.mkdir(parents=True, exist_ok=True)
-    # ┌─ LACUNA [A3-L3] Monte o sistema de arquivos do agente
-    # │  Dica: CompositeBackend(default=..., routes={...}). O default é um FilesystemBackend na DIR_WORKSPACE; a rota "/base/" aponta para outro FilesystemBackend na DIR_DADOS.
-    # │  Copilot Chat: "Retorne um CompositeBackend cujo default é FilesystemBackend(root_dir=DIR_WORKSPACE, virtual_mode=True) e com a rota "/base/" para FilesystemBackend(root_dir=DIR_DADOS, virtual_mode=True)"
-    # └─ Troque cada ___ abaixo. Gabarito: `make gabarito-aula AULA=3`
+    # [A3-L3] ✔ Monte o sistema de arquivos do agente
     return CompositeBackend(
-        default=FilesystemBackend(root_dir=___, virtual_mode=True),
-        routes={___: FilesystemBackend(root_dir=___, virtual_mode=True)},
+        default=FilesystemBackend(root_dir=DIR_WORKSPACE, virtual_mode=True),
+        routes={"/base/": FilesystemBackend(root_dir=DIR_DADOS, virtual_mode=True)},
     )
 
 
@@ -142,7 +136,7 @@ PERMISSOES = [
 
 
 def criar_deep_agent(checkpointer=None):
-    """Cria o Comandante de Incidente.
+    """Cria o agente orquestrador de incidentes.
 
     Args:
         checkpointer: Necessário para o ``interrupt_on`` (aprovação humana do
@@ -151,19 +145,16 @@ def criar_deep_agent(checkpointer=None):
     Returns:
         Grafo LangGraph compilado — mesma interface ``invoke``/``stream`` das aulas anteriores.
     """
-    # ┌─ LACUNA [A3-L4] Ligue os 4 pilares no create_deep_agent
-    # │  Dica: Passe model, tools (consultar_metricas e abrir_ticket), system_prompt, subagents (os 3), backend, memory=["/memoria/AGENTS.md"], permissions, interrupt_on={"abrir_ticket": True} e checkpointer.
-    # │  Copilot Chat: "Chame create_deep_agent com model=obter_llm(), tools=[consultar_metricas, abrir_ticket], system_prompt=PROMPT_COMANDANTE, subagents com ANALISTA_DE_LOGS, PESQUISADOR_DE_RUNBOOKS e criar_subagente_triagem(), backend=criar_backend(), memory=["/memoria/AGENTS.md"], permissions=PERMISSOES, interrupt_on={"abrir_ticket": True}, checkpointer e name "opspilot-comandante""
-    # └─ Troque cada ___ abaixo. Gabarito: `make gabarito-aula AULA=3`
+    # [A3-L4] ✔ Ligue os 4 pilares no create_deep_agent
     return create_deep_agent(
         model=obter_llm(),
         tools=[consultar_metricas, abrir_ticket],
-        system_prompt=PROMPT_COMANDANTE,
-        subagents=[___, ___, ___],
-        backend=___,
-        memory=[___],
+        system_prompt=PROMPT_ORQUESTRADOR,
+        subagents=[ANALISTA_DE_LOGS, PESQUISADOR_DE_RUNBOOKS, criar_subagente_triagem()],
+        backend=criar_backend(),
+        memory=["/memoria/AGENTS.md"],
         permissions=PERMISSOES,
-        interrupt_on={___: True},
+        interrupt_on={"abrir_ticket": True},
         checkpointer=checkpointer,
-        name="opspilot-comandante",
+        name="opspilot-orquestrador",
     )

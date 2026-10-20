@@ -5,7 +5,7 @@ from opspilot import deep_agent as d
 
 def test_subagentes_tem_campos_obrigatorios():
     for spec in (d.ANALISTA_DE_LOGS, d.PESQUISADOR_DE_RUNBOOKS):
-        assert spec["name"] and len(spec["description"]) > 30, "description é o que o Comandante lê para delegar"
+        assert spec["name"] and len(spec["description"]) > 30, "description é o que o orquestrador lê para delegar"
         assert spec["tools"], "sub-agente sem ferramentas não consegue pesquisar"
 
 
@@ -18,7 +18,7 @@ def test_grafo_da_aula2_encapsulado_como_subagente():
     spec = d.criar_subagente_triagem()
     assert spec["name"] == "triagem-fsm"
     nos = set(spec["runnable"].get_graph().nodes)
-    assert "aprovar_ticket" not in nos  # dentro do harness, quem aprova é o Comandante
+    assert "aprovar_ticket" not in nos  # dentro do harness, quem aprova é o orquestrador
 
 
 def test_backend_roteia_base_e_memoria():

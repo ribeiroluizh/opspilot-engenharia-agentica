@@ -14,7 +14,7 @@ Aula 1  ReAct (create_agent) ──▶ Aula 2  FSM (LangGraph) ──▶ Aula 3 
 
 ## 🚀 Começando (5 minutos)
 
-1. **Faça um fork** deste repositório (botão *Fork*, desmarque “Copy the main branch only” para trazer o branch `solucoes`).
+1. **Faça um fork** deste repositório (botão *Fork*, desmarque “Copy the main branch only” para trazer o branch `solucoes`; se esquecer, o `make bonde` busca o gabarito direto neste repositório).
 2. Cadastre os secrets em **github.com → Settings → Codespaces → New secret**, liberando para o seu fork:
    - `OPENAI_API_KEY` (obrigatório)
    - `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_BASE_URL` (só na Aula 4)
@@ -76,7 +76,7 @@ tests/                    ← testes offline por aula + testes live (pytest -m l
 ## 🌿 Branches
 
 - `main` — versão com lacunas (onde você trabalha).
-- `solucoes` — gabarito completo. Use com moderação. 😉
+- `solucoes` — gabarito completo. Use com moderação.
 
 > **CI no `main` com lacunas abertas falha de propósito**: os testes ficam verdes conforme você completa as aulas.
 

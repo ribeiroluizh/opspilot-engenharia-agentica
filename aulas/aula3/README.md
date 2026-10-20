@@ -1,13 +1,13 @@
 # Aula 3 · Deep Agent Harness
 
-**Resultado:** um "Comandante de Incidente" que planeja, delega em paralelo, escreve arquivos e aprende.
+**Resultado:** um agente orquestrador de incidentes que planeja, delega em paralelo, escreve arquivos e aprende.
 
 | Pilar | Onde | Lacunas |
 |---|---|---|
 | Sub-agentes | `opspilot/deep_agent.py` | A3-L1, A3-L2 (o grafo da Aula 2 vira sub-agente) |
 | Sistema de arquivos | `opspilot/deep_agent.py` | A3-L3 |
 | Planejamento + Memória + tudo ligado | `opspilot/deep_agent.py` | A3-L4 |
-| Humano no loop do harness | `aulas/aula3/a3_01_comandante.py` | A3-L5 |
+| Humano no loop do harness | `aulas/aula3/a3_01_orquestrador.py` | A3-L5 |
 
 ```bash
 make bonde AULA=3        # (só se ficou para trás)
