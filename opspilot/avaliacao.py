@@ -66,8 +66,11 @@ def avaliar_regras(caso: Caso, resposta: str, estado: dict) -> dict[str, float]:
         notas["cita_termos_causa"] = float(all(t.lower() in texto for t in caso.termos_causa))
     if caso.servico_causa_esperado:
         diag = estado.get("diagnostico") or {}
-        # [A4-L3] ✔ Regra: a causa raiz está no serviço certo?
-        notas["servico_correto"] = float(diag.get("servico_causa_raiz") == caso.servico_causa_esperado)
+        # ┌─ LACUNA [A4-L3] Regra: a causa raiz está no serviço certo?
+        # │  Dica: Compare diag.get("servico_causa_raiz") com caso.servico_causa_esperado e converta o booleano para float.
+        # │  Copilot Chat: "Atribua a notas["servico_correto"] o float da comparação entre diag.get("servico_causa_raiz") e caso.servico_causa_esperado"
+        # └─ Troque cada ___ abaixo. Gabarito: `make gabarito-aula AULA=4`
+        notas["servico_correto"] = float(___ == ___)
     return notas
 
 
@@ -101,11 +104,12 @@ RESPOSTA DO AGENTE:
 
 def julgar_fundamentacao(pergunta: str, resposta: str, evidencias: str) -> NotaJuiz:
     """Pede a um modelo-juiz uma nota de 1 a 5 para a fundamentação da resposta."""
-    # [A4-L4] ✔ Monte o juiz com saída estruturada
-    juiz = obter_llm(MODELO_JUIZ).with_structured_output(NotaJuiz)
-    return juiz.invoke(
-        PROMPT_JUIZ.format(pergunta=pergunta, resposta=resposta, evidencias=evidencias[:6000] or "(nenhuma)")
-    )
+    # ┌─ LACUNA [A4-L4] Monte o juiz com saída estruturada
+    # │  Dica: Igual ao classificador da Aula 2: obter_llm(MODELO_JUIZ).with_structured_output(NotaJuiz) e depois .invoke(prompt formatado). Limite as evidências a ~6000 caracteres para controlar custo.
+    # │  Copilot Chat: "Crie juiz com obter_llm(MODELO_JUIZ).with_structured_output(NotaJuiz) e retorne juiz.invoke(PROMPT_JUIZ.format(...)) com evidencias truncadas em 6000 caracteres"
+    # └─ Troque cada ___ abaixo. Gabarito: `make gabarito-aula AULA=4`
+    juiz = obter_llm(MODELO_JUIZ).___(NotaJuiz)
+    return juiz.invoke(PROMPT_JUIZ.format(pergunta=pergunta, resposta=resposta, evidencias=___))
 
 
 # --------------------------------------------------------------------------- #

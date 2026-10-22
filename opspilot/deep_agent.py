@@ -36,6 +36,7 @@ from __future__ import annotations
 from deepagents import CompiledSubAgent, FilesystemPermission, SubAgent, create_deep_agent
 from deepagents.backends import CompositeBackend, FilesystemBackend
 
+from opspilot.busca_semantica import buscar_runbook_semantico
 from opspilot.config import DIR_DADOS, DIR_WORKSPACE, obter_llm
 from opspilot.grafo import construir_grafo
 from opspilot.tools import abrir_ticket, buscar_runbook, consultar_metricas, ler_logs
@@ -93,10 +94,11 @@ PESQUISADOR_DE_RUNBOOKS: SubAgent = {
         "prevenção para um problema já identificado."
     ),
     "system_prompt": (
-        "Use buscar_runbook com termos específicos. Devolva os passos de mitigação e "
-        "prevenção citando o nome do arquivo do runbook. Não invente procedimentos."
+        "Use buscar_runbook_semantico quando a pergunta descreve o problema com outras palavras, "
+        "e buscar_runbook para termos exatos (nome de serviço, PoolTimeout). Devolva os passos de "
+        "mitigação e prevenção citando o nome do arquivo do runbook. Não invente procedimentos."
     ),
-    "tools": [buscar_runbook],
+    "tools": [buscar_runbook, buscar_runbook_semantico],
 }
 
 

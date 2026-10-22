@@ -1,0 +1,12 @@
+{"id": "b01", "pergunta": "o banco está recusando novas sessões", "runbook_esperado": "banco-conexoes-esgotadas.md"}
+{"id": "b02", "pergunta": "clientes esperando muito para concluir a compra", "runbook_esperado": "api-latencia-alta.md"}
+{"id": "b03", "pergunta": "e-mails de confirmação de pedido chegando com horas de atraso", "runbook_esperado": "fila-mensagens-atrasada.md"}
+{"id": "b04", "pergunta": "o cadeado do site vai vencer semana que vem", "runbook_esperado": "certificado-expirando.md"}
+{"id": "b05", "pergunta": "PoolTimeout no checkout", "runbook_esperado": "banco-conexoes-esgotadas.md"}
+{"id": "b06", "pergunta": "latência alta no checkout", "runbook_esperado": "api-latencia-alta.md"}
+{"id": "b07", "pergunta": "certificado TLS expirando", "runbook_esperado": "certificado-expirando.md"}
+{"id": "b08", "pergunta": "fila de mensagens crescendo", "runbook_esperado": "fila-mensagens-atrasada.md"}
+{"id": "b09", "pergunta": "SMS de pedido não está sendo enviado", "runbook_esperado": "fila-mensagens-atrasada.md"}
+{"id": "b10", "pergunta": "o aplicativo não consegue falar com o banco de dados de pagamentos", "runbook_esperado": "banco-conexoes-esgotadas.md"}
+{"id": "b11", "pergunta": "a página de pagamento está muito lenta", "runbook_esperado": "api-latencia-alta.md"}
+{"id": "b12", "pergunta": "aviso de que o HTTPS do login vai deixar de valer", "runbook_esperado": "certificado-expirando.md"}

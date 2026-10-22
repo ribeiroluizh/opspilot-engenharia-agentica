@@ -19,6 +19,9 @@ deepagents>=0.7.24,<0.8
 # Observabilidade (Aula 4) — SDK v4 (OpenTelemetry)
 langfuse>=4.17,<5
 
+# Busca semântica (Aula 4): o InMemoryVectorStore calcula o cosseno com numpy
+numpy>=1.26
+
 # Utilitários
 python-dotenv>=1.0
 pydantic>=2.7

@@ -8,7 +8,7 @@ ARQ_AULA2 = opspilot/grafo.py aulas/aula2
 ARQ_AULA3 = opspilot/deep_agent.py aulas/aula3
 ARQ_AULA4 = opspilot/observabilidade.py opspilot/avaliacao.py aulas/aula4 .github/workflows/agentic-ci.yml
 
-.PHONY: help setup check lacunas test test-live aula1 aula2 aula2-grafo aula3 aula4 avaliar bonde gabarito-aula lint
+.PHONY: help setup check lacunas test test-live aula1 aula2 aula2-grafo aula3 aula4 avaliar comparar-buscas bonde gabarito-aula lint
 
 help: ## Mostra esta ajuda
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
@@ -45,6 +45,9 @@ aula3: ## Roda o Deep Agent no INC-2041
 
 aula4: ## Roda a FSM com tracing no Langfuse
 	$(PY) -m aulas.aula4.a4_01_tracing
+
+comparar-buscas: ## Palavras-chave x busca semântica (hit rate)
+	$(PY) -m aulas.aula4.a4_03_comparar_buscas
 
 avaliar: ## Avaliação completa + gate (LIMITE=0.75)
 	$(PY) -m aulas.aula4.a4_02_avaliar --limite $(or $(LIMITE),0.75)

@@ -35,6 +35,7 @@ Aula 1  ReAct (create_agent) ──▶ Aula 2  FSM (LangGraph) ──▶ Aula 3 
 | `make gabarito-aula AULA=2` | compara seu código com o gabarito |
 | `make bonde AULA=3` | ficou para trás? traz o gabarito das aulas anteriores |
 | `make avaliar` | avaliação completa + gate de qualidade |
+| `make comparar-buscas` | compara a busca por palavras-chave com a busca semântica |
 
 ## 🧩 Como funcionam as lacunas
 
