@@ -35,6 +35,7 @@ OBJETIVO = (
 FERRAMENTAS = (
     "- consultar_metricas: números atuais vs. baseline e horário do último deploy.\n"
     "- ler_logs: evidências textuais (use filtros como ERROR, WARN, pool, deploy).\n"
+    "- listar_deploys: deploys encontrados em todos os logs nas últimas N horas, em ordem cronológica.\n"
     "- buscar_runbook: procedimento oficial de diagnóstico e mitigação.\n"
     "- abrir_ticket: SÓ depois de ter causa raiz com pelo menos 2 evidências."
 )

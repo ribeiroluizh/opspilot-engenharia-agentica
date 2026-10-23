@@ -30,7 +30,7 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Literal
 
 from langchain_core.tools import tool
@@ -116,6 +116,51 @@ def ler_logs(servico: str, filtro: str = "", max_linhas: int = 20) -> str:
 
 
 @tool
+def listar_deploys(horas: int) -> str:
+    """Lista deploys recentes encontrados em todos os logs, em ordem cronológica.
+
+    Use para descobrir o que mudou recentemente ou quando houve deploys nos
+    serviços. Retorna apenas linhas com a palavra "deploy" dentro do período.
+
+    Args:
+        horas: Quantas horas para trás pesquisar, por exemplo 6.
+    """
+    if horas < 1:
+        return "ERRO: horas deve ser um inteiro maior que zero."
+
+    agora = datetime.now(timezone.utc)
+    limite = agora - timedelta(hours=horas)
+    deploys: list[tuple[datetime, str]] = []
+    linhas_sem_horario: list[str] = []
+
+    for arquivo in sorted(DIR_LOGS.glob("*.log")):
+        for linha in arquivo.read_text(encoding="utf-8").splitlines():
+            if not re.search(r"\bdeploy\b", linha, flags=re.IGNORECASE):
+                continue
+            try:
+                horario = datetime.fromisoformat(
+                    linha.split(maxsplit=1)[0].replace("Z", "+00:00")
+                )
+            except (IndexError, ValueError):
+                linhas_sem_horario.append(f"{arquivo.name}: {linha}")
+                continue
+
+            if horario.tzinfo is None:
+                horario = horario.replace(tzinfo=timezone.utc)
+            horario = horario.astimezone(timezone.utc)
+            if limite <= horario <= agora:
+                deploys.append((horario, linha))
+
+    if linhas_sem_horario:
+        return "ERRO: não foi possível ordenar linhas de deploy sem horário ISO 8601 válido:\n" + "\n".join(
+            linhas_sem_horario
+        )
+    if not deploys:
+        return f"Nenhum deploy encontrado nas últimas {horas} horas."
+    return "\n".join(linha for _, linha in sorted(deploys, key=lambda item: item[0]))
+
+
+@tool
 def buscar_runbook(consulta: str) -> str:
     """Busca nos runbooks internos o procedimento para um sintoma ou serviço.
 
@@ -190,7 +235,7 @@ def abrir_ticket(
 # --------------------------------------------------------------------------- #
 
 #: Só leitura: seguras para o agente usar livremente (e para sub-agentes).
-FERRAMENTAS_LEITURA = [consultar_metricas, ler_logs, buscar_runbook]
+FERRAMENTAS_LEITURA = [consultar_metricas, ler_logs, listar_deploys, buscar_runbook]
 
 #: Todas, incluindo a de escrita. Na Aula 2/3 ``abrir_ticket`` passa por aprovação humana.
 TODAS_FERRAMENTAS = [*FERRAMENTAS_LEITURA, abrir_ticket]
